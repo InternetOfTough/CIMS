@@ -27,8 +27,8 @@
 
 ![alt text](./readme/image-5.png)
 
+[윈도우 ffmpeg 다운](https://ffmpeg.org/download.html#build-windows)
+
 - hlsjs.html에서 서버의 ip와 port로 바꿔야함
 
 ![alt text](./readme/image-6.png)
-
-[윈도우 ffmpeg 다운](https://ffmpeg.org/download.html#build-windows)

@@ -149,12 +149,16 @@
         </div>
         <div id="dashboard" class="tabcontent">
             <!--test-->
+            <!--            <div th:each="cctv : ${cctvs}" class="video-container">-->
+            <!--                <div class="cctv-label" th:text="${cctv.name}">CCTV</div>-->
+            <!--                <video controls autoplay>-->
+            <!--                    <source th:src="@{|${cctv.storagePath}|}" type="video/mp4">-->
+            <!--                    Your browser does not support the video tag.-->
+            <!--                </video>-->
+            <!--            </div>-->
             <div th:each="cctv : ${cctvs}" class="video-container">
                 <div class="cctv-label" th:text="${cctv.name}">CCTV</div>
-                <video controls autoplay>
-                    <source th:src="@{|${cctv.storagePath}|}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+                <video controls autoplay muted th:id="'video_' + ${cctv.id}"></video>
             </div>
 
         </div>
@@ -172,7 +176,35 @@
 
     </div>
 </div>
+<script src="http://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+    // 각 CCTV 비디오 요소를 가져와서 처리합니다.
+    var videoContainers = document.getElementsByClassName("video-container");
+    Array.from(videoContainers).forEach(function (container) {
+        var video = container.querySelector("video");
+        var videoId = video.getAttribute("id");
 
+        // 해당 CCTV 비디오의 m3u8 파일 경로 지정
+        var cctvId = videoId.split('_')[1];
+        var videoSrc = "http://localhost:8080/cctv/" + cctvId + "/output.m3u8";
+
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
+                video.play();
+            });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = videoSrc;
+            video.addEventListener("loadedmetadata", function () {
+                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
+                video.play();
+            });
+        }
+    });
+</script>
 <!-- kakao sdk init -->
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"
         integrity="sha384-6MFdIr0zOira1CHQkedUqJVql0YtcZA1P0nbPrQYJXVJZUkTk/oX4U9GhUIs3/z8"
@@ -212,10 +244,21 @@
             // 마커를 클릭할 때 정보 창을 열도록 합니다.
             var infowindowContent = document.createElement('div');
             infowindowContent.className = 'infowindow-container';
+            // CCTV 이름 표시
             var titleElement = document.createElement('div');
             titleElement.className = 'infowindow-title';
             titleElement.innerText = cctv.name;
             infowindowContent.appendChild(titleElement);
+            // 네트워크 정보 표시
+            var networkInfoElement = document.createElement('div');
+            networkInfoElement.className = 'infowindow-network-info';
+            networkInfoElement.innerText = 'wifi: 좋음';
+            infowindowContent.appendChild(networkInfoElement);
+            // 카메라 표시
+            var cameraInfoElement = document.createElement('div');
+            cameraInfoElement.className = 'infowindow-camera-info';
+            cameraInfoElement.innerText = '카메라: 동작 중';
+            infowindowContent.appendChild(cameraInfoElement);
             var infowindow = new kakao.maps.InfoWindow({
                 content: infowindowContent,
                 removable: true

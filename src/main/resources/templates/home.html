@@ -160,7 +160,6 @@
                 <div class="cctv-label" th:text="${cctv.name}">CCTV</div>
                 <video controls autoplay muted th:id="'video_' + ${cctv.id}"></video>
                 <div class="additional-info" th:id="${cctv.id}">
-                    <!-- 여기에 추가 정보를 표시 -->
                 </div>
             </div>
 
@@ -179,6 +178,7 @@
 
     </div>
 </div>
+
 <!-- kakao sdk init -->
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"
         integrity="sha384-6MFdIr0zOira1CHQkedUqJVql0YtcZA1P0nbPrQYJXVJZUkTk/oX4U9GhUIs3/z8"
@@ -310,13 +310,13 @@
 <script src="http://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
     // 각 CCTV 비디오 요소를 가져와서 처리합니다.
-    var videoContainers = document.getElementsByClassName("video-container");
+    let videoContainers = document.getElementsByClassName("video-container");
     Array.from(videoContainers).forEach(function (container) {
-        var video = container.querySelector("video");
-        var videoId = video.getAttribute("id");
-        var videoSrc;
+        let video = container.querySelector("video");
+        let videoId = video.getAttribute("id");
+        let videoSrc;
         // 해당 CCTV 비디오의 m3u8 파일 경로 지정
-        var cctvId = videoId.split('_')[1];
+        let cctvId = videoId.split('_')[1];
         cctvs.forEach(function (cctv) {
             console.log(cctv.videoUrl);
             if (cctv.id == cctvId) {
@@ -325,10 +325,10 @@
                 console.log(videoSrc);
             }
         });
-        // var videoSrc = "http://localhost:8080/cctv/" + cctvId + "/output.m3u8";
+        // let videoSrc = "http://localhost:8080/cctv/" + cctvId + "/output.m3u8";
 
         if (Hls.isSupported()) {
-            var hls = new Hls();
+            let hls = new Hls();
             hls.loadSource(videoSrc);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -359,7 +359,7 @@
 
     function onOpen(evt) {
         console.log('connection success');
-        var str = cctvs.map(function (cctv) {
+        let str = cctvs.map(function (cctv) {
             return cctv.id;
         }).join(',');
 

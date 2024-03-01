@@ -20,7 +20,7 @@ public class VideoStreamImpl extends StreamingImplBase {
     CCTVMapper cctvMapper;
 
     @Autowired
-    WebSocketHandler webSocketHandler;
+    WebSocketController webSocketController;
 
     private final ConvertService convertService;
 
@@ -54,7 +54,7 @@ public class VideoStreamImpl extends StreamingImplBase {
 
                 index++;
 
-                webSocketHandler.sendVisionMsg(piName, status, vision);
+                webSocketController.sendVisionMsg(piName, status, vision);
             }
 
             @Override
@@ -62,7 +62,7 @@ public class VideoStreamImpl extends StreamingImplBase {
                 // 에러 발생 시 처리
                 FileUtils.deleteDirectory(new File(HLS_OUTPUT_PATH + piName));
                 System.out.println(t.getMessage());
-                webSocketHandler.sendDiscconnectedMsg(piName);
+                webSocketController.sendDiscconnectedMsg(piName);
             }
 
             @Override

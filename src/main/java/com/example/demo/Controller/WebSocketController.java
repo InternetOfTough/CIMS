@@ -16,7 +16,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
 @Log4j2
-public class WebSocketHandler extends TextWebSocketHandler {
+public class WebSocketController extends TextWebSocketHandler {
 
     private HashMap<String, WebSocketSession> userSession = new HashMap<>(); // key : cctv id , value : session
 

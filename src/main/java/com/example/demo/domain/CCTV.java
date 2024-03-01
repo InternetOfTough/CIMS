@@ -26,7 +26,8 @@ public class CCTV {
     public CCTV(int id, String name, double xCoordinate, double yCoordinate, int networkStat) {
         this.id = id;
         this.name = name;
-        this.videoUrl = "http://localhost:8080/cctv/" + id + OUTPUT_M3U8;
+        this.videoUrl = "http://localhost:8080/cctv/" + id
+                + OUTPUT_M3U8; // http://localhost:8080/cctv/pi -> http://localhost:8080/cctv/
         this.xCoordinate = xCoordinate;
         this.yCoordinate = yCoordinate;
         this.networkStat = networkStat;

@@ -159,6 +159,9 @@
             <div th:each="cctv : ${cctvs}" class="video-container">
                 <div class="cctv-label" th:text="${cctv.name}">CCTV</div>
                 <video controls autoplay muted th:id="'video_' + ${cctv.id}"></video>
+                <div class="additional-info" th:id="${cctv.id}">
+                    <!-- 여기에 추가 정보를 표시 -->
+                </div>
             </div>
 
         </div>
@@ -176,35 +179,6 @@
 
     </div>
 </div>
-<script src="http://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script>
-    // 각 CCTV 비디오 요소를 가져와서 처리합니다.
-    var videoContainers = document.getElementsByClassName("video-container");
-    Array.from(videoContainers).forEach(function (container) {
-        var video = container.querySelector("video");
-        var videoId = video.getAttribute("id");
-
-        // 해당 CCTV 비디오의 m3u8 파일 경로 지정
-        var cctvId = videoId.split('_')[1];
-        var videoSrc = "http://localhost:8080/cctv/" + cctvId + "/output.m3u8";
-
-        if (Hls.isSupported()) {
-            var hls = new Hls();
-            hls.loadSource(videoSrc);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
-                video.play();
-            });
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-            video.src = videoSrc;
-            video.addEventListener("loadedmetadata", function () {
-                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
-                video.play();
-            });
-        }
-    });
-</script>
 <!-- kakao sdk init -->
 <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js"
         integrity="sha384-6MFdIr0zOira1CHQkedUqJVql0YtcZA1P0nbPrQYJXVJZUkTk/oX4U9GhUIs3/z8"
@@ -249,16 +223,21 @@
             titleElement.className = 'infowindow-title';
             titleElement.innerText = cctv.name;
             infowindowContent.appendChild(titleElement);
+
             // 네트워크 정보 표시
             var networkInfoElement = document.createElement('div');
             networkInfoElement.className = 'infowindow-network-info';
-            networkInfoElement.innerText = 'wifi: 좋음';
+            if (message) {
+                if (message.cctvId == cctv.id)
+                    networkInfoElement.innerText = message.status;
+                else
+                    networkInfoElement.innerText = notConnected;
+            } else
+                networkInfoElement.innerText = notConnected;
+
+            // if message is null, error may occur in this code
+            // networkInfoElement.innerText = (message && message.cctvId == cctv.id) ? message.status : notConnected;
             infowindowContent.appendChild(networkInfoElement);
-            // 카메라 표시
-            var cameraInfoElement = document.createElement('div');
-            cameraInfoElement.className = 'infowindow-camera-info';
-            cameraInfoElement.innerText = '카메라: 동작 중';
-            infowindowContent.appendChild(cameraInfoElement);
             var infowindow = new kakao.maps.InfoWindow({
                 content: infowindowContent,
                 removable: true
@@ -327,6 +306,88 @@
     }
 
     document.getElementsByClassName("tablinks")[0].click();
+</script>
+<script src="http://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+    // 각 CCTV 비디오 요소를 가져와서 처리합니다.
+    var videoContainers = document.getElementsByClassName("video-container");
+    Array.from(videoContainers).forEach(function (container) {
+        var video = container.querySelector("video");
+        var videoId = video.getAttribute("id");
+        var videoSrc;
+        // 해당 CCTV 비디오의 m3u8 파일 경로 지정
+        var cctvId = videoId.split('_')[1];
+        cctvs.forEach(function (cctv) {
+            console.log(cctv.videoUrl);
+            if (cctv.id == cctvId) {
+                addMarker(cctv);
+                videoSrc = cctv.videoUrl;
+                console.log(videoSrc);
+            }
+        });
+        // var videoSrc = "http://localhost:8080/cctv/" + cctvId + "/output.m3u8";
+
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
+                video.play();
+            });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = videoSrc;
+            video.addEventListener("loadedmetadata", function () {
+                video.currentTime = 0; // 비디오를 0초에서 시작하도록 설정
+                video.play();
+            });
+        }
+    });
+</script>
+<script>
+    const websocket = new WebSocket("ws://localhost:8080/ws/vision");
+
+    websocket.onmessage = onMessage;
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+
+    let message;
+    const notConnected = 'This cctv is disconnected\n';
+    const ok = 'ok';
+    const emergency = 'emergency!!!!';
+    const empty = '';
+
+    function onOpen(evt) {
+        console.log('connection success');
+        var str = cctvs.map(function (cctv) {
+            return cctv.id;
+        }).join(',');
+
+        websocket.send(str); //cctv id 서버로 전송
+    }
+
+
+    function onMessage(msg) {
+        let data = msg.data;
+        console.log(data);
+        message = JSON.parse(data);
+        // console.log(message.vision);
+
+        // 해당 CCTV ID를 가진 div에 메시지 내용 표시
+        let targetDiv = document.getElementById(message.cctvId);
+        if (targetDiv && message.vision === ok) {
+            targetDiv.innerText = emergency;
+            targetDiv.style.color = "red"; // 빨간색으로 설정
+            targetDiv.style.fontSize = "20px"; // 글자 크기를 20px로 설정
+        } else
+            targetDiv.innerText = empty;
+    }
+
+    function onClose() {
+        message = null;
+        console.log('websocket disconnected');
+    }
+
 </script>
 </body>
 </html>

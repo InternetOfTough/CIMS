@@ -18,7 +18,10 @@ public class VideoStreamImpl extends StreamingImplBase {
 
     @Autowired
     CCTVMapper cctvMapper;
-    
+
+    @Autowired
+    WebSocketHandler webSocketHandler;
+
     private final ConvertService convertService;
 
     @Value("${hls.output.location}")
@@ -42,13 +45,16 @@ public class VideoStreamImpl extends StreamingImplBase {
                 // 클라이언트로부터 받은 각각의 프레임 처리
                 piName = frame.getName();
                 String status = frame.getStatus();
-
+                String vision = frame.getVision();
                 System.out.println("piName =" + piName);
                 System.out.println("status =" + status);
+                System.out.println("vision =" + vision);
 
                 convertService.convertToHls(index, piName, frame.getData().toByteArray());
 
                 index++;
+
+                webSocketHandler.sendVisionMsg(piName, status, vision);
             }
 
             @Override
@@ -56,6 +62,7 @@ public class VideoStreamImpl extends StreamingImplBase {
                 // 에러 발생 시 처리
                 FileUtils.deleteDirectory(new File(HLS_OUTPUT_PATH + piName));
                 System.out.println(t.getMessage());
+                webSocketHandler.sendDiscconnectedMsg(piName);
             }
 
             @Override

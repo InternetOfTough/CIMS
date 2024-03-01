@@ -8,8 +8,6 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-//@AllArgsConstructor
-//@NoArgsConstructor
 public class WebSocketDto {
 
     private String cctvId; // cctv 번호

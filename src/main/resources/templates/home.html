@@ -207,7 +207,7 @@
     }
 
     function addMarker(cctv) {
-        var marker = new kakao.maps.Marker({
+        let marker = new kakao.maps.Marker({
             map: map,
             position: new kakao.maps.LatLng(cctv.xCoordinate, cctv.yCoordinate),
             title: cctv.name
@@ -216,29 +216,27 @@
 
         kakao.maps.event.addListener(marker, 'click', function () {
             // 마커를 클릭할 때 정보 창을 열도록 합니다.
-            var infowindowContent = document.createElement('div');
+            let infowindowContent = document.createElement('div');
             infowindowContent.className = 'infowindow-container';
             // CCTV 이름 표시
-            var titleElement = document.createElement('div');
+            let titleElement = document.createElement('div');
             titleElement.className = 'infowindow-title';
             titleElement.innerText = cctv.name;
             infowindowContent.appendChild(titleElement);
 
             // 네트워크 정보 표시
-            var networkInfoElement = document.createElement('div');
+            let networkInfoElement = document.createElement('div');
             networkInfoElement.className = 'infowindow-network-info';
-            if (message) {
-                if (message.cctvId == cctv.id)
-                    networkInfoElement.innerText = message.status;
-                else
-                    networkInfoElement.innerText = notConnected;
+
+            let id = String(cctv.id); // CCTV Dto의 id도 string으로 바꿔야 함
+
+            if (messages.has(id)) {
+                networkInfoElement.innerText = messages.get(id);// messages.get(id) -> pi status
             } else
                 networkInfoElement.innerText = notConnected;
 
-            // if message is null, error may occur in this code
-            // networkInfoElement.innerText = (message && message.cctvId == cctv.id) ? message.status : notConnected;
             infowindowContent.appendChild(networkInfoElement);
-            var infowindow = new kakao.maps.InfoWindow({
+            let infowindow = new kakao.maps.InfoWindow({
                 content: infowindowContent,
                 removable: true
             });
@@ -352,6 +350,7 @@
     websocket.onclose = onClose;
 
     let message;
+    let messages = new Map(); // cctvId를 기준으로 pi status를 저장할 객체
     const notConnected = 'This cctv is disconnected\n';
     const ok = 'ok';
     const emergency = 'emergency!!!!';
@@ -381,6 +380,10 @@
             targetDiv.style.fontSize = "20px"; // 글자 크기를 20px로 설정
         } else
             targetDiv.innerText = empty;
+
+        // 해당 cctvId의 파이 상태정보 를 저장
+        if (message)
+            messages.set(String(message.cctvId), String(message.status));
     }
 
     function onClose() {

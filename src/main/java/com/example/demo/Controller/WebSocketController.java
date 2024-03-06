@@ -1,5 +1,8 @@
 package com.example.demo.Controller;
 
+import static com.example.demo.Constants.constants.COMMA;
+import static com.example.demo.Constants.constants.DISCONNECTED;
+
 import com.example.demo.domain.WebSocketDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -25,10 +28,10 @@ public class WebSocketController extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
-        log.info("payload: " + payload);
+//        log.info("payload: " + payload);
 
         // 콤마로 구분된 값을 분리하여 배열로 저장
-        String[] payloadValues = payload.split(",");
+        String[] payloadValues = payload.split(COMMA);
 
         for (String value : payloadValues) {
             userSession.put(value.trim(), session); // 공백을 제거하고 저장
@@ -52,12 +55,11 @@ public class WebSocketController extends TextWebSocketHandler {
     }
 
     public void sendDisconnectedMsg(String key) {
-        String status = "This cctv is disconnected";
         WebSocketSession session = userSession.get(key);
         if (session != null && session.isOpen()) {
             try {
-                // 객체를 JSON 문자열로 변환
-                String jsonMessage = objectMapper.writeValueAsString(new WebSocketDto(key, status, status));
+                // 객체를 JSON 문자열로 변환   DISCONNECTED -> "This cctv is disconnected";
+                String jsonMessage = objectMapper.writeValueAsString(new WebSocketDto(key, DISCONNECTED, DISCONNECTED));
 
                 session.sendMessage(new TextMessage(jsonMessage));
             } catch (IOException e) {

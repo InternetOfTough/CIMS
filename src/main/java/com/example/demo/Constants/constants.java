@@ -27,4 +27,8 @@ public class constants {
     public static final Pattern ONLY_NUMBER = Pattern.compile(
             "[^\\d]");
     public static final String EMPTY = "";
+    public static final String COMMA = ",";
+
+    public static String DISCONNECTED = "This cctv is disconnected";
+
 }

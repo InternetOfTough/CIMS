@@ -16,10 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 @GrpcService
 public class VideoStreamImpl extends StreamingImplBase {
 
-    @Autowired
     CCTVMapper cctvMapper;
 
-    @Autowired
     WebSocketController webSocketController;
 
     private final ConvertService convertService;
@@ -28,8 +26,11 @@ public class VideoStreamImpl extends StreamingImplBase {
     private String HLS_OUTPUT_PATH;
 
     @Autowired
-    public VideoStreamImpl(ConvertService convertService) {
+    public VideoStreamImpl(ConvertService convertService, WebSocketController webSocketController,
+                           CCTVMapper cctvMapper) {
         this.convertService = convertService;
+        this.webSocketController = webSocketController;
+        this.cctvMapper = cctvMapper;
     }
 
     @Override
@@ -62,7 +63,7 @@ public class VideoStreamImpl extends StreamingImplBase {
                 // 에러 발생 시 처리
                 FileUtils.deleteDirectory(new File(HLS_OUTPUT_PATH + piName));
                 System.out.println(t.getMessage());
-                webSocketController.sendDiscconnectedMsg(piName);
+                webSocketController.sendDisconnectedMsg(piName);
             }
 
             @Override

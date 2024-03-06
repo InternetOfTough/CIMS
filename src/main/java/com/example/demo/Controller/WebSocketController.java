@@ -51,7 +51,7 @@ public class WebSocketController extends TextWebSocketHandler {
         }
     }
 
-    public void sendDiscconnectedMsg(String key) {
+    public void sendDisconnectedMsg(String key) {
         String status = "This cctv is disconnected";
         WebSocketSession session = userSession.get(key);
         if (session != null && session.isOpen()) {
